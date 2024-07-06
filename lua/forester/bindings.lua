@@ -49,12 +49,26 @@ local function query(arg, config)
   return res
 end
 
+---@class Bindings.Tree
+---@field sourcePath string
+---@field route string
+---@field title? string
+---@field taxon? string
+---@field tags string[]
+---@field metas table
+Bindings.Tree = {}
+
+---@param config string
+---@return Bindings.Tree[]
 local function query_all(config)
   local res = Job:new({
     command = "forester",
     args = { "query", "all", config },
   }):sync()
-  return vim.json.decode(res[1])
+
+  -- Translate JSON null to Lua nil
+  local opts = { luanil = { object = true, array = true } }
+  return vim.json.decode(res[1], opts)
 end
 
 local function new(prefix, tree_dir, config)

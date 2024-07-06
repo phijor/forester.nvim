@@ -39,36 +39,14 @@ end
 -- end)
 -- vim.print(vim.inspect(items))
 ---Invoke completion (required).
----
+
+---@param params cmp.SourceCompletionApiParams
+---@param callback fun(response: lsp.CompletionResponse|nil)
 function source:complete(params, callback)
   -- vim.notify(vim.inspect(params))
   -- vim.notify(vim.inspect(params.context.cursor_before_line))
   local input = string.sub(params.context.cursor_before_line, params.offset - 1)
-  if vim.startswith(input, "(") then
-    local items = {}
-    local trees = forester.query_all(vim.g.forester_current_config)
-    -- vim.print(vim.inspect(trees))
-    for addr, data in pairs(trees) do
-      -- vim.notify(vim.inspect(data.title))
-      local title
-      if data.title == vim.NIL then
-        title = "<untitled>"
-      else
-        title = data.title
-      end
-      table.insert(items, {
-        filterText = addr .. " " .. title,
-        -- filterText = addr,
-        label = title .. " (" .. addr .. ")",
-        -- label = " (" .. addr .. ")",
-        insertText = addr,
-        documentation = nil,
-        detail = addr,
-      })
-    end
-    --vim.print(vim.inspect(items))
-    callback({ items = items })
-  elseif vim.startswith(input, "\\") then
+  if vim.startswith(input, "\\") then
     callback({
       { label = "title" },
       { label = "author" },
@@ -84,7 +62,30 @@ function source:complete(params, callback)
       { label = "code" },
       { label = "tex" },
     })
+  else
+    local trees = forester.query_all(vim.g.forester_current_config)
+    callback(self:_trees_to_completion_response(trees))
   end
+end
+
+---@param trees forester.Tree[]
+---@return lsp.CompletionResponse
+function source:_trees_to_completion_response(trees)
+  local items = {}
+
+  for addr, tree in pairs(trees) do
+    local title = tree.title or "<untitled>"
+    local taxon = tree.taxon or "Tree"
+
+    table.insert(items, {
+      filterText = addr .. " " .. title,
+      label = title,
+      insertText = addr,
+      detail = ("%s (%s)"):format(taxon, addr),
+    })
+  end
+
+  return { items = items }
 end
 
 ---Resolve completion item (optional). This is called right before the completion is about to be displayed.
