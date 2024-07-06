@@ -24,6 +24,7 @@
             screenkey
             tree-sitter
             forest-server.packages.${system}.default
+            lua51Packages.luacheck
           ];
         };
       });
