@@ -5,7 +5,7 @@ local source = {}
 ---Return whether this source is available in the current context or not (optional).
 ---@return boolean
 function source:is_available()
-  return true
+  return vim.bo.filetype == "forester"
 end
 
 ---Return the debug name of this source (optional).
